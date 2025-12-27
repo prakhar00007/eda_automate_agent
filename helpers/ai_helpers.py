@@ -1,17 +1,18 @@
 """
 ai_helpers.py - AI and LLM helper functions
-Contains functions for EURI API integration and AI-powered insights
+Contains functions for EURI API integration and AI-powered insights with streaming support
 """
 
 import requests
 import streamlit as st
 import pandas as pd
 import numpy as np
+import json
 from helpers.eda_helpers import get_numerical_stats
 
 
 def get_euri_insights(df, dataset_info, analysis_type, euri_api_key):
-    """Get AI insights from EURI API"""
+    """Get AI insights from EURI API with streaming support"""
     if not euri_api_key:
         return "EURI API key not configured"
 
@@ -114,17 +115,38 @@ def get_euri_insights(df, dataset_info, analysis_type, euri_api_key):
         }
         payload = {
             "messages": [{"role": "user", "content": prompt}],
-            "model": "gpt-4.1-nano"
+            "model": "gemini-2.5-flash",
+            "stream": True
         }
 
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        # Use streaming response
+        response = requests.post(url, json=payload, headers=headers, stream=True, timeout=60)
         response.raise_for_status()
-        data = response.json()
-        if isinstance(data, dict) and 'choices' in data and len(data['choices']) > 0:
-            choice = data['choices'][0]
-            if 'message' in choice and isinstance(choice['message'], dict):
-                return choice['message'].get('content', 'Unable to generate insights')
-        return "Unable to generate insights from EURI API"
+        
+        # Create a container for streaming output
+        output_container = st.empty()
+        full_response = ""
+        
+        # Process streaming response
+        for line in response.iter_lines():
+            if line:
+                try:
+                    # Handle SSE format (data: {json})
+                    line_str = line.decode('utf-8') if isinstance(line, bytes) else line
+                    if line_str.startswith('data: '):
+                        json_str = line_str[6:]  # Remove 'data: ' prefix
+                        if json_str.strip():
+                            data = json.loads(json_str)
+                            if 'choices' in data and len(data['choices']) > 0:
+                                choice = data['choices'][0]
+                                if 'delta' in choice and 'content' in choice['delta']:
+                                    chunk = choice['delta']['content']
+                                    full_response += chunk
+                                    output_container.markdown(full_response)
+                except (json.JSONDecodeError, KeyError, AttributeError):
+                    continue
+        
+        return full_response if full_response else "Unable to generate insights from EURI API"
 
     except requests.exceptions.RequestException as e:
         return f"Error calling EURI API: {str(e)}"

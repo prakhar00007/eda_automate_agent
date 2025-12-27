@@ -24,11 +24,18 @@ A complete Streamlit application for automated Exploratory Data Analysis (EDA) w
 - Bar charts for categorical columns
 - Scatter plots for relationships
 
-✅ **LLM-Powered Insights (EURI API)**
+✅ **LLM-Powered Insights (EURI API with Streaming)**
+- Real-time streaming responses for instant feedback
 - Natural language dataset summary
 - Data quality issue identification
 - Trend & correlation analysis
 - Actionable recommendations for cleaning & feature engineering
+- Powered by Google Gemini Flash 2.5 for faster responses
+
+## 🌐 Live Demo
+
+**Try the app online:**
+👉 [https://eda-automate-agent-prakhar.streamlit.app/](https://eda-automate-agent-prakhar.streamlit.app/)
 
 ## 🚀 Quick Start
 
@@ -86,11 +93,16 @@ eda-analyaser-automate/
 
 ## ⚙️ Configuration
 
-**EURI API Model** (default: `gpt-4.1-nano`)
-You can change the model in the app sidebar settings.
+**EURI API Model** (default: `gemini-2.5-flash`)
+- Uses Google's Gemini Flash 2.5 model for fast, accurate insights
+- Supports streaming responses for real-time output
+- Optimized for data analysis tasks
 
 **LLM Backend**
-The app currently uses EURI API. If you have Google Gemini API key, set `GEMINI_API_KEY` env var and select "gemini" in app settings.
+The app uses EURI API with streaming enabled for real-time response generation. This provides:
+- Faster perceived latency (responses appear immediately)
+- Word-by-word display as the model generates content
+- Improved user experience on slower connections
 
 ## 🔒 Security
 - ✅ API keys stored in `.env` (never in code)
@@ -126,9 +138,10 @@ streamlit run app.py --server.port 8502
 ```
 
 **Issue**: Slow LLM response
-- LLM calls can take 5-10 seconds
-- Click "Generate insights" and wait for response
-- Check your internet connection
+- Streaming responses may take 3-5 seconds (text appears as it's generated)
+- Ensure stable internet connection
+- Model: `gemini-2.5-flash` is optimized for speed
+- Check EURI API status at api.euron.one
 
 ## 🎯 Next Steps (Enhancement Ideas)
 - Add downloadable EDA report (PDF/HTML export)
